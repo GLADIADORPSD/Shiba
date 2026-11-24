@@ -15,7 +15,7 @@
 .gene-scroll{overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin;scrollbar-color:#745c92 #17121f;padding-bottom:12px}
 .gene-scroll:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
 .gene-scroll-hint{display:none;text-align:center;font-size:.76rem;color:var(--muted);margin:0 0 12px}
-.gene-canvas{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:80px 52px 186px 72px 186px;position:relative;isolation:isolate;min-width:840px;margin:0 auto}
+.gene-canvas{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));grid-template-rows:80px 52px minmax(230px,auto) 72px minmax(220px,auto);position:relative;isolation:isolate;min-width:840px;margin:0 auto}
 .gene-connectors{position:absolute;inset:0;width:100%;height:100%;z-index:-1;overflow:visible;pointer-events:none}
 .gene-link{stroke:#9b80c5;stroke-width:1.5;vector-effect:non-scaling-stroke}
 .gene-partner{stroke:#78c6ff;stroke-width:1.5;stroke-dasharray:4 4;vector-effect:non-scaling-stroke}
@@ -23,12 +23,12 @@
 .gene-root{grid-column:2 / 5;grid-row:1;align-self:stretch;justify-self:center;justify-content:center;margin:0;padding:7px 20px;gap:0}
 .gene-root span{font-size:1.4rem}.gene-root small{font-size:.57rem}
 .gene-node{grid-column:var(--column);grid-row:var(--row);min-width:0;margin:0 6px;z-index:1}
-.gene-node .member{height:100%;min-height:0;padding:12px 5px 8px;gap:5px;overflow:hidden}
+.gene-node .member{height:auto;min-height:220px;flex:1;padding:12px 6px 14px;gap:6px;overflow:visible}
 .gene-node .member img,.gene-node .avatar-placeholder{width:72px;height:72px;flex:none}
 .gene-node .member strong{font-size:1.03rem;line-height:1.12;overflow-wrap:anywhere}
 .gene-node .member small{font-size:.58rem;letter-spacing:.035em;text-transform:none;line-height:1.25}
 .gene-node .member-status{font-size:.62rem;line-height:1.18}
-.gene-node .member-link{font-size:.67rem;line-height:1.2}
+.gene-node .member-link{font-size:.72rem;line-height:1.4;flex-shrink:0;padding-top:4px;white-space:normal}
 .gene-marcos .member img,.bio-dialog .portrait-marcos{object-fit:contain;background:#21182d}
 .gene-union{grid-column:6;grid-row:3;align-self:center;justify-self:center;z-index:1;pointer-events:none;transform:translateY(-1px)}
 .gene-union span{display:grid;place-items:center;background:#1b1528;border:1px solid #78c6ff78;border-radius:50%;width:30px;height:30px;color:var(--blue);line-height:1;font-size:1.2rem}
@@ -41,3 +41,6 @@
 @media(max-width:940px){.gene-scroll-hint{display:block}}
 @media(max-width:480px){.genealogy{padding:16px 8px}.gene-legend{gap:12px;font-size:.64rem}.friend-cloud{gap:22px 18px}.friend-bubble img,.friend-bubble .avatar-placeholder{width:76px;height:76px}}
 @media(prefers-reduced-motion:reduce){.friend-bubble img,.friend-bubble .avatar-placeholder,.friend-name{animation:none!important;transition:none!important}}
+
+/* v0.5.1 — cards grow with content and mobile font settings. */
+.gene-node{display:flex;align-items:stretch;min-height:0}.gene-node .member>*{flex-shrink:0;max-width:100%}.gene-node .member strong,.gene-node .member small,.gene-node .member-status,.gene-node .member-link{overflow-wrap:anywhere}.gene-node .member-link{margin-top:auto}.gene-node .member:hover{transform:none}.gene-union{transform:none}
