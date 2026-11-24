@@ -44,3 +44,6 @@
 
 /* v0.5.1 — cards grow with content and mobile font settings. */
 .gene-node{display:flex;align-items:stretch;min-height:0}.gene-node .member>*{flex-shrink:0;max-width:100%}.gene-node .member strong,.gene-node .member small,.gene-node .member-status,.gene-node .member-link{overflow-wrap:anywhere}.gene-node .member-link{margin-top:auto}.gene-node .member:hover{transform:none}.gene-union{transform:none}
+
+/* Historical video archive */
+.memory-video{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:center;gap:clamp(18px,4vw,42px);margin-top:28px;padding:clamp(18px,4vw,36px);border:1px solid var(--line);border-radius:16px;background:linear-gradient(135deg,#1e172b,#11101a)}.memory-video h3{font:clamp(1.7rem,4vw,2.3rem) Georgia,serif;margin:12px 0}.memory-video p{color:var(--muted);margin-bottom:16px}.archive-video{display:block;width:100%;max-width:440px;max-height:70vh;aspect-ratio:1;object-fit:contain;justify-self:center;background:#09080e;border:1px solid #49345c;border-radius:12px}.archive-link{display:inline-block;color:var(--purple);margin-top:6px}.archive-link:hover{border-color:var(--purple)}@media(max-width:680px){.memory-video{grid-template-columns:1fr}.archive-video{max-width:100%}}
