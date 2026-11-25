@@ -1,0 +1,141 @@
+:root {
+  color-scheme: dark;
+  --bg: #100e19;
+  --panel: #1a1528;
+  --ink: #f3edf9;
+  --muted: #cabbd9;
+  --line: #513f62;
+  --accent: #dab6ff;
+  font:
+    16px/1.5 system-ui,
+    sans-serif;
+  color: var(--ink);
+  background: radial-gradient(ellipse at top right, #2d1745, transparent 45%),
+    var(--bg);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+}
+main {
+  width: min(64rem, 100%);
+  margin: auto;
+  padding: 1.25rem;
+}
+h1,
+h2,
+h3,
+p {
+  margin: 0.3rem 0 0.85rem;
+}
+h1 {
+  font-family: Georgia, serif;
+  font-size: clamp(2.35rem, 8vw, 4rem);
+  font-weight: 500;
+  line-height: 1.1;
+}
+h2 {
+  font-size: 1.2rem;
+}
+.eyebrow {
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+section {
+  margin: 1rem 0;
+  padding: 1.1rem;
+  border: 1px solid var(--line);
+  background: var(--panel);
+  border-radius: 1rem;
+}
+label {
+  display: block;
+  font-weight: 600;
+  margin: 0.9rem 0;
+}
+input,
+textarea,
+select {
+  width: 100%;
+  display: block;
+  border: 1px solid var(--line);
+  border-radius: 0.58rem;
+  background: var(--bg);
+  color: var(--ink);
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  margin-top: 0.3rem;
+}
+textarea {
+  resize: vertical;
+}
+a {
+  color: var(--accent);
+}
+button,
+.button {
+  font: inherit;
+  min-height: 2.65rem;
+  border: 1px solid var(--line);
+  border-radius: 0.6rem;
+  color: var(--ink);
+  background: #2e2241;
+  padding: 0.5rem 0.78rem;
+  text-decoration: none;
+  display: inline-grid;
+  place-items: center;
+  cursor: pointer;
+  text-align: center;
+}
+.primary,
+.button {
+  background: var(--accent);
+  color: #21132d;
+  border-color: transparent;
+  font-weight: 700;
+}
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+.bar {
+  display: flex;
+  gap: 0.55rem;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+fieldset {
+  border: 1px solid var(--line);
+  border-radius: 0.55rem;
+  margin: 1rem 0;
+  padding: 0.25rem 0.85rem 0.8rem;
+}
+legend,
+#own-hint,
+footer,
+#notice {
+  color: var(--muted);
+}
+article {
+  margin-top: 1rem;
+  border-top: 1px solid var(--line);
+  padding-top: 1rem;
+}
+article p,
+#opened-body p {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+[hidden] {
+  display: none !important;
+}
