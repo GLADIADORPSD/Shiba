@@ -1,0 +1,46 @@
+{
+  "version": 1,
+  "people": [
+    {
+      "id": "d",
+      "name": "Demiurgo Shiba"
+    },
+    {
+      "id": "rick",
+      "name": "Rick Marinho"
+    },
+    {
+      "id": "aiko",
+      "name": "Aiko Shiba"
+    },
+    {
+      "id": "penelope",
+      "name": "Penélope Shiba"
+    },
+    {
+      "id": "marcos",
+      "name": "Marcos Shiba"
+    },
+    {
+      "id": "yuri",
+      "name": "Yuri Walker"
+    },
+    {
+      "id": "noah",
+      "name": "Noah"
+    },
+    {
+      "id": "alice",
+      "name": "Alice"
+    },
+    {
+      "id": "jc",
+      "name": "JC"
+    },
+    {
+      "id": "galanti",
+      "name": "Galanti"
+    }
+  ],
+  "owners": {}
+}

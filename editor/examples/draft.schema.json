@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Rascunho editorial privado Shiba v1",
+  "type": "object",
+  "required": ["version", "id", "author", "createdAt", "status", "type", "bio"],
+  "properties": {
+    "version": { "const": 1 },
+    "id": {
+      "type": "string",
+      "format": "uuid",
+      "pattern": "^[a-f0-9]{8}-[a-f0-9]{4}-4[a-f0-9]{3}-[89ab][a-f0-9]{3}-[a-f0-9]{12}$"
+    },
+    "author": { "$ref": "#/$defs/discordId" },
+    "createdAt": { "type": "string", "format": "date-time" },
+    "status": { "enum": ["pending", "accepted", "rejected"] },
+    "type": { "enum": ["bio", "person"] },
+    "bio": { "$ref": "#/$defs/biography" },
+    "person": { "$ref": "#/$defs/personId" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 100 },
+    "relatedPerson": { "$ref": "#/$defs/personId" },
+    "relation": { "enum": ["familiar", "amigo", "companheiro", "outro"] },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reviewer", "at", "note"],
+      "properties": {
+        "reviewer": { "$ref": "#/$defs/discordId" },
+        "at": { "type": "string", "format": "date-time" },
+        "note": { "type": "string", "maxLength": 500 }
+      }
+    }
+  },
+  "additionalProperties": false,
+  "allOf": [
+    {
+      "if": { "properties": { "type": { "const": "bio" } } },
+      "then": {
+        "required": ["person"],
+        "properties": {
+          "name": false,
+          "relatedPerson": false,
+          "relation": false
+        }
+      },
+      "else": {
+        "required": ["name", "relatedPerson", "relation"],
+        "properties": { "person": false }
+      }
+    },
+    {
+      "if": { "properties": { "status": { "const": "pending" } } },
+      "then": { "properties": { "review": false } },
+      "else": { "required": ["review"] }
+    }
+  ],
+  "$defs": {
+    "discordId": { "type": "string", "pattern": "^[1-9][0-9]{15,21}$" },
+    "personId": { "type": "string", "pattern": "^[a-z][a-z0-9-]{0,63}$" },
+    "biography": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary", "sections"],
+      "properties": {
+        "summary": { "type": "string", "minLength": 1, "maxLength": 450 },
+        "sections": {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 6,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["heading", "content"],
+            "properties": {
+              "heading": { "type": "string", "minLength": 1, "maxLength": 90 },
+              "content": { "type": "string", "minLength": 1, "maxLength": 1400 }
+            }
+          }
+        }
+      }
+    }
+  }
+}

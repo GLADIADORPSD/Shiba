@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#100e19" />
+    <title>Shiba · Oficina editorial</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script type="module" src="/app.js"></script>
+  </head>
+  <body>
+    <main>
+      <header>
+        <p class="eyebrow">Arquivo da família</p>
+        <h1>Oficina Shiba</h1>
+        <p>
+          Revise sua biografia ou proponha um novo vínculo. Nada é publicado
+          automaticamente.
+        </p>
+      </header>
+      <section id="sign-in" aria-labelledby="entry-title">
+        <h2 id="entry-title">Entre para editar</h2>
+        <p>Sua função no servidor Discord define o que você pode editar.</p>
+        <a class="button" href="/login">Entrar com Discord</a>
+      </section>
+      <p id="notice" role="status" aria-live="polite"></p>
+      <div id="desk" hidden>
+        <div class="bar">
+          <h2 id="identity">Seus rascunhos</h2>
+          <button id="logout" type="button">Sair</button>
+        </div>
+        <section aria-labelledby="account-title">
+          <div class="bar">
+            <h2 id="account-title">Sua conta Discord</h2>
+            <button id="register-account" type="button">
+              Registrar minha conta
+            </button>
+          </div>
+          <p>
+            Registre seu ID para que um administrador possa vinculá-lo a uma
+            pessoa da árvore. Isso não concede acesso extra.
+          </p>
+          <p id="account-id" hidden></p>
+        </section>
+        <section id="permissions" hidden aria-labelledby="permissions-title">
+          <div class="bar">
+            <h2 id="permissions-title">Permissões de biografia</h2>
+            <button id="permissions-refresh" type="button">
+              Atualizar permissões
+            </button>
+          </div>
+          <p>
+            O papel no Discord precisa continuar ativo. O vínculo abaixo só
+            autoriza editar a biografia correspondente.
+          </p>
+          <form id="permissions-form">
+            <label
+              >ID exato da conta Discord
+              <input
+                name="discordId"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                pattern="[1-9][0-9]{15,21}"
+                maxlength="22"
+                required
+              />
+            </label>
+            <label
+              >Pessoa a vincular<select name="person" required></select
+            ></label>
+            <button class="primary" type="submit">Vincular conta</button>
+          </form>
+          <h3>Vínculos atuais</h3>
+          <ul id="permission-links" class="permission-list"></ul>
+          <details>
+            <summary>Alterações recentes</summary>
+            <ul id="permission-audit"></ul>
+          </details>
+        </section>
+        <section aria-labelledby="draft-title">
+          <h2 id="draft-title">Criar rascunho</h2>
+          <form id="draft">
+            <label
+              >Tipo de contribuição<select name="type">
+                <option value="bio">Minha biografia</option>
+                <option value="person">Propor uma nova pessoa</option>
+              </select></label
+            >
+            <p id="own-hint"></p>
+            <div id="new-person" hidden>
+              <label
+                >Nome da pessoa<input name="personName" maxlength="100"
+              /></label>
+              <label
+                >Pessoa já cadastrada<select name="relatedPerson"></select
+              ></label>
+              <label
+                >Papel no grupo<select name="relation">
+                  <option value="familiar">Familiar</option>
+                  <option value="amigo">Amigo(a)</option>
+                  <option value="companheiro">Companheiro(a)</option>
+                  <option value="outro">Outro vínculo</option>
+                </select></label
+              >
+            </div>
+            <label
+              >Resumo<textarea
+                name="summary"
+                maxlength="450"
+                rows="3"
+                required
+              ></textarea>
+            </label>
+            <div id="sections"></div>
+            <button id="add-section" type="button">Adicionar seção</button>
+            <div class="bar">
+              <button id="show-preview" type="button">Ver prévia</button
+              ><button class="primary" type="submit">
+                Enviar para revisão
+              </button>
+            </div>
+            <article
+              id="preview"
+              hidden
+              aria-label="Prévia da biografia"
+            ></article>
+          </form>
+        </section>
+        <section aria-labelledby="mine-title">
+          <div class="bar">
+            <h2 id="mine-title">Meus rascunhos</h2>
+            <button id="my-refresh" type="button">Atualizar</button>
+          </div>
+          <label>Escolha um rascunho<select id="mine"></select></label
+          ><button id="open-mine" type="button">Abrir rascunho</button>
+        </section>
+        <section id="review" hidden aria-labelledby="review-title">
+          <div class="bar">
+            <h2 id="review-title">Fila de revisão</h2>
+            <button id="review-refresh" type="button">Atualizar</button>
+          </div>
+          <label>Identificador do autor<select id="authors"></select></label
+          ><label>Rascunho<select id="author-drafts"></select></label>
+          <button id="open-review" type="button">Abrir para revisar</button>
+        </section>
+        <section id="opened" hidden aria-labelledby="opened-title">
+          <h2 id="opened-title">Rascunho selecionado</h2>
+          <div id="opened-body"></div>
+          <form id="review-form" hidden>
+            <label
+              >Nota da revisão (opcional)<textarea
+                name="note"
+                maxlength="500"
+                rows="3"
+              ></textarea>
+            </label>
+            <div class="bar">
+              <button name="decision" value="rejected">Rejeitar</button
+              ><button class="primary" name="decision" value="accepted">
+                Aceitar para publicação manual
+              </button>
+            </div>
+          </form>
+        </section>
+      </div>
+      <footer>
+        <a href="https://gladiadorpsd.github.io/Shiba/"
+          >Voltar ao arquivo público</a
+        >
+      </footer>
+    </main>
+  </body>
+</html>
