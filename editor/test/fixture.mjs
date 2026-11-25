@@ -1,5 +1,6 @@
 /* Synthetic development-only dependency injection; no Discord/GitHub network or credentials. */
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 import { createEditor } from '../src/worker.mjs';
 import { encode64, random, s256 } from '../src/security.mjs';
 
@@ -23,10 +24,12 @@ const testData = {
 };
 const encoder = new TextEncoder();
 const decoder = new TextDecoder();
-const hash = 'a'.repeat(40);
+const hash = (value) =>
+  createHash('sha1').update(JSON.stringify(value)).digest('hex');
 
 export async function fixture() {
   const now = { value: Date.now() };
+  const race = { nextRegistryWrite: false };
   const roles = new Map([
     [AUTHOR, ['100000000000000010']],
     [ADMIN, ['100000000000000011']],
@@ -166,7 +169,14 @@ export async function fixture() {
             )
               throw Error('unscoped write');
             const { sha, content } = JSON.parse(opts.body);
-            if (records.has(key) !== Boolean(sha) || (sha && sha !== hash))
+            if (key === 'config/registry.json' && race.nextRegistryWrite) {
+              race.nextRegistryWrite = false;
+              return new Response(null, { status: 409 });
+            }
+            if (
+              records.has(key) !== Boolean(sha) ||
+              (sha && sha !== hash(records.get(key)))
+            )
               return new Response(null, { status: 409 });
             records.set(
               key,
@@ -182,7 +192,7 @@ export async function fixture() {
             const data = encoder.encode(JSON.stringify(records.get(key)));
             return ok({
               type: 'file',
-              sha: hash,
+              sha: hash(records.get(key)),
               encoding: 'base64',
               content: encode64(data),
               size: data.length,
@@ -228,5 +238,5 @@ export async function fixture() {
       session: cookiePair(callback.headers, COOKIE),
     };
   }
-  return { env, api, request, login, records, calls, roles, meta, now };
+  return { env, api, request, login, records, calls, roles, meta, now, race };
 }

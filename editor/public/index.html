@@ -29,6 +29,55 @@
           <h2 id="identity">Seus rascunhos</h2>
           <button id="logout" type="button">Sair</button>
         </div>
+        <section aria-labelledby="account-title">
+          <div class="bar">
+            <h2 id="account-title">Sua conta Discord</h2>
+            <button id="register-account" type="button">
+              Registrar minha conta
+            </button>
+          </div>
+          <p>
+            Registre seu ID para que um administrador possa vinculá-lo a uma
+            pessoa da árvore. Isso não concede acesso extra.
+          </p>
+          <p id="account-id" hidden></p>
+        </section>
+        <section id="permissions" hidden aria-labelledby="permissions-title">
+          <div class="bar">
+            <h2 id="permissions-title">Permissões de biografia</h2>
+            <button id="permissions-refresh" type="button">
+              Atualizar permissões
+            </button>
+          </div>
+          <p>
+            O papel no Discord precisa continuar ativo. O vínculo abaixo só
+            autoriza editar a biografia correspondente.
+          </p>
+          <form id="permissions-form">
+            <label
+              >ID exato da conta Discord
+              <input
+                name="discordId"
+                type="text"
+                inputmode="numeric"
+                autocomplete="off"
+                pattern="[1-9][0-9]{15,21}"
+                maxlength="22"
+                required
+              />
+            </label>
+            <label
+              >Pessoa a vincular<select name="person" required></select
+            ></label>
+            <button class="primary" type="submit">Vincular conta</button>
+          </form>
+          <h3>Vínculos atuais</h3>
+          <ul id="permission-links" class="permission-list"></ul>
+          <details>
+            <summary>Alterações recentes</summary>
+            <ul id="permission-audit"></ul>
+          </details>
+        </section>
         <section aria-labelledby="draft-title">
           <h2 id="draft-title">Criar rascunho</h2>
           <form id="draft">

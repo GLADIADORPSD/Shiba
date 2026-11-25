@@ -1,6 +1,12 @@
 import { fail, slug, snowflake, uuid } from './security.mjs';
 
 const roles = new Set(['familiar', 'amigo', 'companheiro', 'outro']);
+const permissionActions = new Set(['grant', 'revoke']);
+const auditLimit = 100;
+export const revisionHash = (value) =>
+  typeof value === 'string' && /^(?:[a-f0-9]{40}|[a-f0-9]{64})$/.test(value);
+const isoDate = (value) =>
+  typeof value === 'string' && Number.isFinite(Date.parse(value));
 const shape = (value, keys) =>
   value &&
   typeof value === 'object' &&
@@ -43,7 +49,10 @@ export function biography(value) {
 export function registry(value) {
   try {
     if (
-      !shape(value, ['version', 'people', 'owners']) ||
+      !(
+        shape(value, ['version', 'people', 'owners']) ||
+        shape(value, ['version', 'people', 'owners', 'permissionAudit'])
+      ) ||
       value.version !== 1 ||
       !Array.isArray(value.people) ||
       value.people.length < 1 ||
@@ -81,10 +90,78 @@ export function registry(value) {
       [...owners].some(([id, person]) => !snowflake(id) || !people.has(person))
     )
       throw Error();
-    return { people, owners };
+    const permissionAudit = Object.hasOwn(value, 'permissionAudit')
+      ? value.permissionAudit
+      : [];
+    if (
+      !Array.isArray(permissionAudit) ||
+      permissionAudit.length > auditLimit ||
+      !permissionAudit.every(
+        (entry) =>
+          shape(entry, ['action', 'discordId', 'person', 'by', 'at']) &&
+          permissionActions.has(entry.action) &&
+          snowflake(entry.discordId) &&
+          slug(entry.person) &&
+          snowflake(entry.by) &&
+          isoDate(entry.at),
+      )
+    )
+      throw Error();
+    return { people, owners, permissionAudit };
   } catch {
     fail(503, 'Registro editorial indisponível.');
   }
+}
+export function permissionChange(value) {
+  if (
+    !shape(value, ['action', 'discordId', 'person', 'revision']) ||
+    !permissionActions.has(value.action) ||
+    !snowflake(value.discordId) ||
+    !slug(value.person) ||
+    !revisionHash(value.revision)
+  )
+    fail(
+      400,
+      'Use um ID Discord exato, uma pessoa cadastrada e uma revisão válida.',
+    );
+  return value;
+}
+export function applyPermissionChange(change, raw, catalog, admin, now) {
+  const { action, discordId, person } = change;
+  if (!catalog.people.has(person)) fail(400, 'Pessoa não cadastrada.');
+  if (action === 'grant') {
+    if (
+      catalog.owners.has(discordId) ||
+      [...catalog.owners.values()].includes(person)
+    )
+      fail(
+        409,
+        'Já existe um vínculo para esta conta ou pessoa. Revogue o vínculo correto primeiro.',
+      );
+    catalog.owners.set(discordId, person);
+  } else {
+    if (catalog.owners.get(discordId) !== person)
+      fail(409, 'O vínculo informado já não corresponde ao registro.');
+    catalog.owners.delete(discordId);
+  }
+  return {
+    ...raw,
+    owners: Object.fromEntries(catalog.owners),
+    permissionAudit: [
+      ...catalog.permissionAudit,
+      { action, discordId, person, by: admin, at: new Date(now).toISOString() },
+    ].slice(-auditLimit),
+  };
+}
+export function verifiedMember(record, discordId) {
+  if (
+    !shape(record, ['version', 'discordId', 'registeredAt']) ||
+    record.version !== 1 ||
+    record.discordId !== discordId ||
+    !snowflake(record.discordId) ||
+    !isoDate(record.registeredAt)
+  )
+    fail(503, 'Registro de conta inconsistente.');
 }
 export function proposal(value, author, catalog, now) {
   const base = {

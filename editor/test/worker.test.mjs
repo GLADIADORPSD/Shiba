@@ -207,7 +207,7 @@ test('only admin reviews new person and private records; no public publishing', 
         '/repos/Example/Editor-Private/contents/' + createdPath,
     ),
   );
-  assert.equal(writes[1].body.sha, 'a'.repeat(40));
+  assert.match(writes[1].body.sha, /^[a-f0-9]{40}$/u);
   assert.deepEqual(
     [...f.records.keys()],
     ['config/registry.json', createdPath],

@@ -1,6 +1,7 @@
 const $ = (id) => document.getElementById(id);
 const form = $('draft');
 const reviewForm = $('review-form');
+const permissionForm = $('permissions-form');
 const statusText = {
   pending: 'Em revisão',
   accepted: 'Aceito, aguarda publicação manual',
@@ -118,6 +119,86 @@ async function queue() {
   );
   optionList($('author-drafts'), []);
 }
+let permissionState,
+  changingPermissions = false;
+const personName = (id) =>
+  session.people.find((person) => person.id === id)?.name || id;
+async function loadPermissions() {
+  permissionState = await api('/api/permissions');
+  const { links, audit } = permissionState;
+  const occupied = new Set(links.map(({ person }) => person));
+  optionList(
+    permissionForm.elements.namedItem('person'),
+    session.people
+      .filter(({ id }) => !occupied.has(id))
+      .map(({ id, name }) => [id, name]),
+  );
+  const list = $('permission-links');
+  list.replaceChildren();
+  if (!links.length) {
+    const empty = document.createElement('li');
+    empty.textContent = 'Nenhum vínculo cadastrado.';
+    list.append(empty);
+  }
+  for (const link of links) {
+    const row = document.createElement('li');
+    const text = document.createElement('span');
+    text.textContent = `${personName(link.person)} · ${link.discordId}`;
+    const remove = document.createElement('button');
+    remove.type = 'button';
+    remove.textContent = 'Revogar';
+    remove.setAttribute(
+      'aria-label',
+      'Revogar vínculo de ' + personName(link.person),
+    );
+    remove.addEventListener(
+      'click',
+      safe(async () => {
+        if (
+          !confirm(
+            `Revogar o acesso de ${link.discordId} à biografia de ${personName(link.person)}?`,
+          )
+        )
+          return;
+        await changePermission({ action: 'revoke', ...link }, remove);
+      }),
+    );
+    row.append(text, remove);
+    list.append(row);
+  }
+  $('permission-audit').replaceChildren(
+    ...audit.map((item) => {
+      const row = document.createElement('li');
+      const date = new Date(item.at).toLocaleString('pt-BR');
+      row.textContent = `${date} · ${item.action === 'grant' ? 'Vinculado' : 'Revogado'}: ${personName(item.person)} · ${item.discordId} · por ${item.by}`;
+      return row;
+    }),
+  );
+}
+async function changePermission(change, button) {
+  if (changingPermissions || !permissionState) return;
+  changingPermissions = true;
+  if (button) button.disabled = true;
+  try {
+    await api('/api/permissions', {
+      ...change,
+      revision: permissionState.revision,
+    });
+    notice(
+      change.action === 'grant' ? 'Vínculo concedido.' : 'Vínculo revogado.',
+    );
+    try {
+      await loadPermissions();
+    } catch {
+      notice(
+        'Alteração salva. Atualize a lista de permissões para conferi-la.',
+      );
+    }
+  } finally {
+    changingPermissions = false;
+    if (button) button.disabled = false;
+  }
+}
 async function chooseAuthor() {
   const author = $('authors').value;
   const data = author ? await api('/api/drafts/' + author) : { ids: [] };
@@ -170,6 +251,28 @@ $('show-preview').addEventListener('click', () => {
 field('type').addEventListener('change', () => changeType());
 $('my-refresh').addEventListener('click', safe(mine));
 $('review-refresh').addEventListener('click', safe(queue));
+$('register-account').addEventListener(
+  'click',
+  safe(async () => {
+    const result = await api('/api/account/register', {});
+    const id = $('account-id');
+    id.textContent = 'ID registrado: ' + result.discordId;
+    id.hidden = false;
+    notice(
+      'Conta registrada. Informe este ID a um administrador por um canal privado.',
+    );
+  }),
+);
+$('permissions-refresh').addEventListener('click', safe(loadPermissions));
+permissionForm.addEventListener('submit', (event) => {
+  event.preventDefault();
+  const discordId = permissionForm.elements.namedItem('discordId').value;
+  const person = permissionForm.elements.namedItem('person').value;
+  void changePermission(
+    { action: 'grant', discordId, person },
+    event.submitter,
+  ).catch((error) => notice(error.message));
+});
 $('authors').addEventListener('change', safe(chooseAuthor));
 $('open-mine').addEventListener(
   'click',
@@ -270,10 +373,9 @@ await (async () => {
   }
   if (session.role === 'admin') {
     $('review').hidden = false;
-    try {
-      await queue();
-    } catch (error) {
-      notice(error.message);
-    }
+    $('permissions').hidden = false;
+    const results = await Promise.allSettled([queue(), loadPermissions()]);
+    const failed = results.find((result) => result.status === 'rejected');
+    if (failed) notice(failed.reason.message);
   }
 })();

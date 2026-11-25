@@ -139,3 +139,20 @@ article p,
 [hidden] {
   display: none !important;
 }
+.permission-list {
+  padding-inline-start: 0;
+  list-style: none;
+}
+.permission-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  border-bottom: 1px solid var(--line);
+  padding: 0.45rem 0;
+  overflow-wrap: anywhere;
+}
+#permission-audit {
+  overflow-wrap: anywhere;
+}

@@ -1,10 +1,13 @@
 import { repoStore } from './github.mjs';
 import {
+  applyPermissionChange,
   ensureDraft,
+  permissionChange,
   proposal,
   registry,
   review,
   verifyDraftLink,
+  verifiedMember,
 } from './schema.mjs';
 import {
   configuration,
@@ -41,6 +44,8 @@ function redirect(location, cookies) {
   for (const value of cookies) headers.append('set-cookie', value);
   return new Response(null, { status: 303, headers });
 }
+const registryPath = 'config/registry.json';
+const memberPath = (id) => `members/${id}.json`;
 const pathFor = (author, id) => `drafts/${author}/${id}.json`;
 const requests = (fetcher) => (path, init) =>
   fetcher(discord + path, {
@@ -231,9 +236,7 @@ export function createEditor({ fetcher = fetch, clock = Date.now } = {}) {
         );
         if (path === '/api/session' && req.method === 'GET') {
           const store = await repoStore(env, fetcher, now, false);
-          const catalog = registry(
-            (await store.json('config/registry.json')).value,
-          );
+          const catalog = registry((await store.json(registryPath)).value);
           const assigned =
             catalog.people.get(catalog.owners.get(session.id)) ?? null;
           return json({
@@ -245,12 +248,84 @@ export function createEditor({ fetcher = fetch, clock = Date.now } = {}) {
             })),
           });
         }
+        if (path === '/api/account/register' && req.method === 'POST') {
+          const body = await readJson(req);
+          if (
+            !body ||
+            typeof body !== 'object' ||
+            Array.isArray(body) ||
+            Object.keys(body).length
+          )
+            fail(400, 'A conta é obtida somente da sessão autenticada.');
+          const store = await repoStore(env, fetcher, now, true);
+          const path = memberPath(session.id);
+          const existing = await store.json(path).catch((error) => {
+            if (error.status === 404) return null;
+            throw error;
+          });
+          if (existing) verifiedMember(existing.value, session.id);
+          else
+            await store.write(path, {
+              version: 1,
+              discordId: session.id,
+              registeredAt: new Date(now).toISOString(),
+            });
+          return json({ discordId: session.id }, existing ? 200 : 201);
+        }
+        if (
+          path === '/api/permissions' &&
+          (req.method === 'GET' || req.method === 'POST')
+        ) {
+          if (role !== 'admin')
+            fail(403, 'Apenas administradores gerenciam permissões.');
+          const change =
+            req.method === 'POST'
+              ? permissionChange(await readJson(req))
+              : null;
+          const store = await repoStore(env, fetcher, now, Boolean(change));
+          const stored = await store.json(registryPath);
+          const catalog = registry(stored.value);
+          if (!change)
+            return json({
+              revision: stored.sha,
+              links: [...catalog.owners].map(([discordId, person]) => ({
+                discordId,
+                person,
+              })),
+              audit: catalog.permissionAudit.slice(-20).reverse(),
+            });
+          if (change.revision !== stored.sha)
+            fail(
+              409,
+              'Permissões mudaram. Atualize a lista antes de tentar de novo.',
+            );
+          if (change.action === 'grant') {
+            const target = await store
+              .json(memberPath(change.discordId))
+              .catch((error) => {
+                if (error.status === 404)
+                  fail(
+                    400,
+                    'Peça a essa pessoa para registrar a própria conta no painel antes de vincular.',
+                  );
+                throw error;
+              });
+            verifiedMember(target.value, change.discordId);
+          }
+          const updated = applyPermissionChange(
+            change,
+            stored.value,
+            catalog,
+            session.id,
+            now,
+          );
+          await store.write(registryPath, updated, stored.sha);
+          return new Response(null, { status: 204, headers: hardening });
+        }
         if (path === '/api/drafts' && req.method === 'POST') {
           const body = await readJson(req);
           const store = await repoStore(env, fetcher, now, true);
-          const catalog = registry(
-            (await store.json('config/registry.json')).value,
-          );
+          const catalog = registry((await store.json(registryPath)).value);
           const draft = proposal(body, session.id, catalog, now);
           await store.write(pathFor(session.id, draft.id), draft);
           return json(draft, 201);
@@ -316,7 +391,7 @@ export function createEditor({ fetcher = fetch, clock = Date.now } = {}) {
             if (body?.decision === 'accepted')
               verifyDraftLink(
                 draft,
-                registry((await store.json('config/registry.json')).value),
+                registry((await store.json(registryPath)).value),
               );
             const updated = review(body, draft, session.id, now);
             await store.write(pathFor(author, id), updated, stored.sha);
